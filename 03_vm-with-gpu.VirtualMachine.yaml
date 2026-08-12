@@ -1,0 +1,66 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-with-gpu
+  namespace: default
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        name: vm-with-gpu-volume
+      spec:
+        sourceRef:
+          kind: DataSource
+          name: rhel8
+          namespace: openshift-virtualization-os-images
+        storage:
+          accessModes:
+            - ReadWriteMany
+          storageClassName: ocs-storagecluster-ceph-rbd-virtualization
+          volumeMode: Block
+          resources:
+            requests:
+              storage: 30Gi
+  instancetype:
+    name: u1.medium
+  preference:
+    name: rhel.8
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        network.kubevirt.io/headlessService: headless
+    spec:
+      domain:
+        devices:
+          autoattachPodInterface: false
+          disks: []
+          interfaces:
+            - masquerade: {}
+              name: default
+          hostDevices:
+            - deviceName: "nvidia.com/AD102GL_L40S"
+              name: gpu1
+            # - deviceName: "nvidia.com/AD102GL_L40S"
+            #   name: gpu2
+            # - deviceName: "nvidia.com/AD102GL_L40S"
+            #   name: gpu3
+            # - deviceName: "nvidia.com/AD102GL_L40S"
+            #   name: gpu4
+            # - deviceName: "nvidia.com/AD102GL_L40S"
+            #   name: gpu5
+      networks:
+        - name: default
+          pod: {}
+      subdomain: headless
+      volumes:
+        - dataVolume:
+            name: vm-with-gpu-volume
+          name: rootdisk
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              chpasswd:
+                expire: false
+              password: password123
+              user: rhel
+          name: cloudinitdisk
