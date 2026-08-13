@@ -1,0 +1,168 @@
+# apiVersion: project.openshift.io/v1
+# kind: Project
+# metadata:
+#   name: 'clusters'
+# ---
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: 'vhcp-test'
+  namespace: 'clusters'
+spec:
+  channel: fast-4.20
+  fips: false
+  etcd:
+    managed:
+      storage:
+        persistentVolume:
+          size: 8Gi
+        type: PersistentVolume
+        storageClassName: lvms-hcp-etcd
+    managementType: Managed
+  release:
+    image: quay.io/openshift-release-dev/ocp-release:4.20.28-multi
+  pullSecret:
+    name: pullsecret-cluster-vhcp-test
+  sshKey:
+    name: sshkey-cluster-vhcp-test
+  networking:
+    clusterNetwork:
+      - cidr: 10.132.0.0/14
+    serviceNetwork:
+      - cidr: 172.31.0.0/16
+    networkType: OVNKubernetes
+  controllerAvailabilityPolicy: HighlyAvailable
+  infrastructureAvailabilityPolicy: HighlyAvailable
+  platform:
+    type: KubeVirt
+    kubevirt:
+      baseDomainPassthrough: true
+  infraID: 'vhcp-test'
+  services:
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: Route
+    - service: OIDC
+      # in IBM docs for Fusion HCI, this OIDC service should be removed 
+      servicePublishingStrategy:
+        type: Route
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: Route
+    - service: Ignition
+      servicePublishingStrategy:
+        type: Route
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pullsecret-cluster-vhcp-test
+  namespace: 'clusters'
+stringData:
+  '.dockerconfigjson': |-
+    {
+      "auths": {
+        "cloud.openshift.com": {
+          "auth": "",
+          "email": ""
+        },
+        "quay.io": {
+          "auth": "",
+          "email": ""
+        },
+        "registry.connect.redhat.com": {
+          "auth": "",
+          "email": ""
+        },
+        "registry.redhat.io": {
+          "auth": "",
+          "email": ""
+        },
+        "cp.icr.io": {
+          "username": "cp",
+          "password": ""
+        }
+      }
+    }
+type: kubernetes.io/dockerconfigjson
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sshkey-cluster-vhcp-test
+  namespace: 'clusters'
+stringData:
+  'id_rsa.pub': ''
+---
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: 'vhcp-test'
+  namespace: 'clusters'
+spec:
+  arch: amd64
+  clusterName: 'vhcp-test'
+  replicas: 3
+  management:
+    autoRepair: false
+    upgradeType: Replace
+  platform:
+    type: KubeVirt
+    kubevirt:
+      compute:
+        cores: 8
+        memory: 32Gi
+        # qosClass: Burstable # Guaranteed
+      # networkInterfaceMultiqueue: Enable (only if MTU is 9000 or greater)
+      attachDefaultNetwork: true
+      defaultPodNetwork: true
+      rootVolume:
+        type: Persistent
+        persistent:
+          accessModes:
+            - ReadWriteMany
+          size: 300Gi
+          storageClass: ocs-storagecluster-ceph-rbd-virtualization
+          volumeMode: Block
+  release:
+    image: quay.io/openshift-release-dev/ocp-release:4.20.28-multi
+---
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+  annotations:
+    import.open-cluster-management.io/hosting-cluster-name: local-cluster 
+    import.open-cluster-management.io/klusterlet-deploy-mode: Hosted
+    open-cluster-management/created-via: hypershift
+  labels:
+    cloud: BareMetal
+    vendor: OpenShift
+    name: 'vhcp-test'
+    isf.ibm.com/fusion-base: ''
+    isf.ibm.com/fusion-fdf: ''
+  name: 'vhcp-test'
+spec:
+  hubAcceptsClient: true
+---
+apiVersion: agent.open-cluster-management.io/v1
+kind: KlusterletAddonConfig
+metadata:
+  name: 'vhcp-test'
+  namespace: 'vhcp-test'
+spec:
+  clusterName: 'vhcp-test'
+  clusterNamespace: 'vhcp-test'
+  clusterLabels:
+    cloud: BareMetal
+    vendor: OpenShift
+  applicationManager:
+    enabled: true
+  policyController:
+    enabled: true
+  searchCollector:
+    enabled: true
+  certPolicyController:
+    enabled: true
