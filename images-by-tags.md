@@ -2,8 +2,8 @@
 
 ```bash
 # get current registries.conf
-reneredconfig=$(oc get machineconfigpool worker -o jsonpath='{.spec.configuration.name}')
-oc get machineconfig $reneredconfig -o jsonpath='{.spec.config.storage.files[?(@.path=="/etc/containers/registries.conf")].contents.source}' | awk -F "base64," '{print $2}'|base64 -d > registries.conf
+renderedconfig=$(oc get machineconfigpool worker -o jsonpath='{.spec.configuration.name}')
+oc get machineconfig $renderedconfig -o jsonpath='{.spec.config.storage.files[?(@.path=="/etc/containers/registries.conf")].contents.source}' | awk -F "base64," '{print $2}'|base64 -d > registries.conf
 
 # convert to registries by tag
 cp registries.conf registries-by-tag.conf
@@ -11,8 +11,8 @@ sed -i 's/pull-from-mirror = "tag-only"\|pull-from-mirror = "digest-only"/mirror
 ENCODED_CONTENT=$(cat  registries-by-tag.conf| base64 -w0)
 
 # prepare IDMS for use with HCP
-curl -L "https://github.com/mikefarah/yq/releases/download/v4.53.4/yq_linux_arm64" -o /tmp/yq-v4 && chmod +x /tmp/yq-v4
-oc get ImageDigestMirrorSet -oyaml | /tmp/yq-v4 '.items[] | .spec.imageDigestMirrors' > ~/jpetnik/vhcp/mgmt_iscp.yaml
+curl -L "https://github.com/mikefarah/yq/releases/download/v4.53.4/yq_linux_amd64" -o /tmp/yq-v4 && chmod +x /tmp/yq-v4
+oc get ImageDigestMirrorSet -oyaml | /tmp/yq-v4 '.items[] | .spec.imageDigestMirrors' > ~/jpetnik/vhcp/mgmt_icsp.yaml
 
 # create configmap in multicluster-engine namespace for HCP nodepool can use ITMS
 oc create -n multicluster-engine configmap custom-registries --from-file=ca-bundle.crt=CEEERTTT-HERE.crt --from-file=registries.conf
