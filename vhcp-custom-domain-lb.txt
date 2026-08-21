@@ -1,0 +1,31 @@
+
+CLUSTER_NAME=XYZ
+# HTTP
+HTTP_NODE_PORT=`oc --kubeconfig $CLUSTER_NAME-kubeconfig get services -n openshift-ingress router-nodeport-default -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}'`
+
+# HTTPS
+HTTPS_NODE_PORT=`oc --kubeconfig $CLUSTER_NAME-kubeconfig get services -n openshift-ingress router-nodeport-default -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}'`
+
+# CREATE LB
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: $CLUSTER_NAME
+  name: $CLUSTER_NAME-apps
+  namespace: clusters-$CLUSTER_NAME
+spec:
+  ports:
+  - name: https-443
+    port: 443
+    protocol: TCP
+    targetPort: $HTTPS_NODE_PORT
+  - name: http-80
+    port: 80
+    protocol: TCP
+    targetPort: $HTTP_NODE_PORT
+  selector:
+    kubevirt.io: virt-launcher
+  type: LoadBalancer
+EOF

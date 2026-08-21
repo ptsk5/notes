@@ -12,3 +12,10 @@ data:
       }
     }
 EOF
+
+NEBO:
+oc create configmap insights-config \
+  -n openshift-insights \
+  --from-literal=config.yaml='dataReporting:
+  disableRuntimeExtractor: true' \
+  --dry-run=client -o yaml | oc apply -f -
