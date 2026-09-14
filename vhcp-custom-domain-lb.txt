@@ -7,7 +7,7 @@ HTTP_NODE_PORT=`oc --kubeconfig $CLUSTER_NAME-kubeconfig get services -n openshi
 HTTPS_NODE_PORT=`oc --kubeconfig $CLUSTER_NAME-kubeconfig get services -n openshift-ingress router-nodeport-default -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}'`
 
 # CREATE LB
-cat <<EOF | oc apply -f -
+cat <<EOF > $CLUSTER_NAME.lb.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -29,3 +29,9 @@ spec:
     kubevirt.io: virt-launcher
   type: LoadBalancer
 EOF
+
+oc apply -f $CLUSTER_NAME.lb.yaml
+
+# GET INGRESS IP
+oc -n clusters-$CLUSTER_NAME get service $CLUSTER_NAME-apps -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+

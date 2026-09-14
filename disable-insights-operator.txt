@@ -1,21 +1,11 @@
-cat <<EOF | oc apply -f -
-apiVersion: v1
-kind: ConfigMap
+cat <<EOF | oc --kubeconfig SCLUSTER NAME-kubeconfig apply -f - 
+apiVersion: vl 
+kind: ConfigMap 
 metadata:
   name: insights-config
   namespace: openshift-insights
 data:
-  config.json: |
-    {
-      "dataReporting": {
-        "disableRuntimeExtractor": true
-      }
-    }
+  config.yaml: | 
+    dataReporting:
+      disableRuntimeExtractor: true
 EOF
-
-NEBO:
-oc create configmap insights-config \
-  -n openshift-insights \
-  --from-literal=config.yaml='dataReporting:
-  disableRuntimeExtractor: true' \
-  --dry-run=client -o yaml | oc apply -f -
