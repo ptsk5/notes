@@ -1,0 +1,9 @@
+apiVersion: console.openshift.io/v1
+kind: ConsoleNotification
+metadata:
+  name: cluster-warning
+spec:
+  text: "⚠ WARNING ⚠"
+  location: BannerTop
+  color: "#ffffff"
+  backgroundColor: "#ff0000"
