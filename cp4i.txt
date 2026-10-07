@@ -76,3 +76,7 @@
   - name: icr.io/cpopen/ibm-mq-operator-catalog@sha256:8fe73bd67342a27fb511cabcacfe5993023e218f8b14e0a5e9083c7605a3ebb3
   - name: icr.io/cpopen/ibm-mq-operator@sha256:c9a1a1f327428db4b5b807107a9dbc8037c204ecd80a61bda8811af1204b5aa1
   - name: icr.io/ibm-messaging/mq@sha256:2cb02e7991ac9fc44d10ba4e353abdc1402ec1667243b74a4574df5f274d7907
+
+  - name: docker.io/hashicorp/vault-k8s:1.7.6
+  - name: docker.io/hashicorp/vault:2.0.4
+  - name: registry.connect.redhat.com/hashicorp/vault-secrets-operator-bundle@sha256:670572265f0734e61415ae7b536cfa6ad6c9130ef2c3052221dbe7343ac4b92b
