@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  # trivy:ignore:KSV-0110
+  # trivy:ignore:AVD-KSV-0110
+  name: maas-playground
+  labels:
+    app: maas-playground
+spec:
+  to:
+    kind: Service
+    name: maas-playground
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
